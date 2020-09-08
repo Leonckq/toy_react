@@ -1,19 +1,27 @@
 export function createElement(type, attributes, ...children) {
   let e
   if (typeof type === 'string') {
-    e = document.createElement(tagName)
+    e = new ElementWrapper(type)
   } else {
     e = new type
   }
   for(let p in attributes) {
     e.setAttribute(p, attributes[p])
   }
-  for(let child of children) {
-    if (typeof child === "string") {
-      child = document.createTextNode(child)
+
+  let insertChildren = (children) => {
+    for(let child of children) {
+      if (typeof child === 'string') {
+        child = new TextWrapper(child)
+      }
+      if (Array.isArray(child)) {
+        insertChildren(child)
+      } else {
+        e.appendChild(child)
+      }
     }
-    e.appendChild(child)
   }
+  insertChildren(children)
   return e
 }
 
@@ -32,19 +40,19 @@ export class ElementWrapper {
 
 export class  TextWrapper{
   constructor(content) {
-    this.root = document.createElement(content)
+    this.root = document.createTextNode(content)
   }
 }
 
-export function render (component, prentElement) {
-
+export function render (component, parentElement) {
+  parentElement.appendChild(component.root)
 }
 
-export class Componet {
+export class Component {
   constructor() {
     this.props = Object.create(null)
     this.children = []
-    this
+    this._root = null
   }
   setAttribute(name, value) {
     this.props[name] = value
@@ -52,5 +60,11 @@ export class Componet {
 
   appendChild(component) {
     this.children.push(component)
+  }
+  get root() {
+    if (!this._root) {
+      this._root = this.render().root
+    }
+    return this._root
   }
 }
