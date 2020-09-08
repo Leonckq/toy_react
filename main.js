@@ -1,6 +1,10 @@
-for(let a of [1,2,3,4]) {
-  console.log(a)
-}
+import { createElement } from './toy_react'
 
-let a = <div/>
-console.log(a)
+
+window.a = <div>
+    <div id="aha">jkzf</div>
+    <div></div>
+    <div></div>
+  </div>
+
+  document.body.appendChild(window.a)
