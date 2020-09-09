@@ -1,3 +1,5 @@
+const RENDER_TO_DOM = Symbol('render to dom')
+
 export function createElement(type, attributes, ...children) {
   let e
   if (typeof type === 'string') {
@@ -25,7 +27,7 @@ export function createElement(type, attributes, ...children) {
   return e
 }
 
-export class ElementWrapper {
+class ElementWrapper {
   constructor(type) {
     this.root = document.createElement(type)
   }
@@ -34,18 +36,35 @@ export class ElementWrapper {
   }
 
   appendChild(component) {
-    this.root.appendChild(component.root)
+    // this.root.appendChild(component.root)
+    const range = document.createRange()
+    range.setStart(this.root, this.root.childNodes.length)
+    range.setEnd(this.root, this.root.childNodes.length)
+    component[RENDER_TO_DOM](range)
+  }
+  [RENDER_TO_DOM](range) {
+    range.deleteContents()
+    range.insertNode(this.root)
   }
 }
 
-export class  TextWrapper{
+class  TextWrapper{
   constructor(content) {
     this.root = document.createTextNode(content)
+  }
+  [RENDER_TO_DOM](range) {
+    range.deleteContents()
+    range.insertNode(this.root)
   }
 }
 
 export function render (component, parentElement) {
-  parentElement.appendChild(component.root)
+  // parentElement.appendChild(component.root)
+  const range = document.createRange()
+  range.setStart(parentElement, 0)
+  range.setEnd(parentElement, parentElement.childNodes.length)
+  range.deleteContents()
+  component[RENDER_TO_DOM](range)
 }
 
 export class Component {
@@ -53,6 +72,7 @@ export class Component {
     this.props = Object.create(null)
     this.children = []
     this._root = null
+    this._range = null
   }
   setAttribute(name, value) {
     this.props[name] = value
@@ -60,6 +80,10 @@ export class Component {
 
   appendChild(component) {
     this.children.push(component)
+  }
+  [RENDER_TO_DOM](range) {
+    this._range = range
+    this.render()[RENDER_TO_DOM](range)
   }
   get root() {
     if (!this._root) {
