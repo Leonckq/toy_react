@@ -30,7 +30,9 @@ export class Component {
     oldRange.setStart(range.endContainer, range.endOffset)
     oldRange.deleteContents()
   }
-
+  get vdom() {
+    return this.render().vdom
+  }
   setState(newState) {
     if (this.state === null || typeof this.state !== 'object') {
       this.state = newState
@@ -88,11 +90,12 @@ export function createElement(type, attributes, ...children) {
   return e
 }
 
-class ElementWrapper {
+class ElementWrapper extends Component {
   constructor(type) {
-    this.root = document.createElement(type)
+    super(type)
+    // this.root = document.createElement(type)
   }
-  setAttribute(name, value) {
+  /*setAttribute(name, value) {
     if (name.match(/^on([\s\S]+$)/)) {
       const type = RegExp.$1.replace(/^[\s\S]/, c => c.toLowerCase()).toString()
       this.root.addEventListener(type, value)
@@ -114,12 +117,31 @@ class ElementWrapper {
   [RENDER_TO_DOM](range) {
     range.deleteContents()
     range.insertNode(this.root)
+  }*/
+
+  get vdom() {
+    return this
+    /*return {
+      type: this.type,
+      props: this.props,
+      children: this.children.map(child => child.vdom)
+    }*/
   }
 }
 
-class  TextWrapper{
+class  TextWrapper extends Component{
   constructor(content) {
+    super(content)
+    this.type = '#text'
+    this.content = content
     this.root = document.createTextNode(content)
+  }
+  get vdom() {
+    return this
+    /*return {
+      type: '#text',
+      content: this.content
+    }*/
   }
   [RENDER_TO_DOM](range) {
     range.deleteContents()
