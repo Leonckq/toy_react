@@ -1,5 +1,37 @@
 const RENDER_TO_DOM = Symbol('render to dom')
 
+
+export class Component {
+  constructor() {
+    this.props = Object.create(null)
+    this.children = []
+    this._root = null
+    this._range = null
+  }
+  setAttribute(name, value) {
+    this.props[name] = value
+  }
+
+  appendChild(component) {
+    this.children.push(component)
+  }
+  [RENDER_TO_DOM](range) {
+    this._range = range
+    this.render()[RENDER_TO_DOM](range)
+  }
+  rerender() {
+    debugger
+    this._range.deleteContents()
+    this[RENDER_TO_DOM](this._range)
+  }
+  // get root() {
+  //   if (!this._root) {
+  //     this._root = this.render().root
+  //   }
+  //   return this._root
+  // }
+}
+
 export function createElement(type, attributes, ...children) {
   let e
   if (typeof type === 'string') {
@@ -32,11 +64,16 @@ class ElementWrapper {
     this.root = document.createElement(type)
   }
   setAttribute(name, value) {
-    this.root.setAttribute(name, value)
+    if (name.match(/^on([\s\S]+$)/)) {
+      const type = RegExp.$1.replace(/^[\s\S]/, c => c.toLowerCase()).toString()
+      this.root.addEventListener(type, value)
+    } else {
+      this.root.setAttribute(name, value)
+    }
+    
   }
 
   appendChild(component) {
-    // this.root.appendChild(component.root)
     const range = document.createRange()
     range.setStart(this.root, this.root.childNodes.length)
     range.setEnd(this.root, this.root.childNodes.length)
@@ -67,28 +104,3 @@ export function render (component, parentElement) {
   component[RENDER_TO_DOM](range)
 }
 
-export class Component {
-  constructor() {
-    this.props = Object.create(null)
-    this.children = []
-    this._root = null
-    this._range = null
-  }
-  setAttribute(name, value) {
-    this.props[name] = value
-  }
-
-  appendChild(component) {
-    this.children.push(component)
-  }
-  [RENDER_TO_DOM](range) {
-    this._range = range
-    this.render()[RENDER_TO_DOM](range)
-  }
-  get root() {
-    if (!this._root) {
-      this._root = this.render().root
-    }
-    return this._root
-  }
-}

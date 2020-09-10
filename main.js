@@ -2,10 +2,21 @@ import { createElement, Component, render } from './toy_react'
 
 
 class MyComponent extends Component {
+  constructor() {
+    super()
+    this.state = {
+      a: 1,
+      b: 2
+    }
+  }
   render() {
+    console.log(this)
+    console.log(this.rerender)
     return <div>
       <h1>MyComponent</h1>
-      {JSON.stringify(this.children)}
+      {/* {JSON.stringify(this.children)} */}
+      {this.state.a.toString()}-{this.state.b.toString()}
+      <button onClick={() => { console.log(1); this.state.a++; this.rerender();  }}>++</button>
       {this.children}
     </div>
   }
