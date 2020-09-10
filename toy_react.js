@@ -20,9 +20,35 @@ export class Component {
     this.render()[RENDER_TO_DOM](range)
   }
   rerender() {
-    debugger
-    this._range.deleteContents()
-    this[RENDER_TO_DOM](this._range)
+    const oldRange = this._range
+
+    let range = document.createRange()
+    range.setStart(this._range.startContainer, oldRange.startOffset)
+    range.setEnd(this._range.startContainer, oldRange.startOffset)
+    this[RENDER_TO_DOM](range)
+
+    oldRange.setStart(range.endContainer, range.endOffset)
+    oldRange.deleteContents()
+  }
+
+  setState(newState) {
+    if (this.state === null || typeof this.state !== 'object') {
+      this.state = newState
+      this.rerender()
+      return
+    }
+    const merge = (oldState, newState) => {
+      for(let p in newState) {
+        if (oldState[p] === null || typeof oldState[p] !== 'object') {
+          oldState[p] = newState[p]
+        } else {
+          merge(oldState[p],newState[p])
+        }
+      }
+    }
+
+    merge(this.state, newState)
+    this.rerender()
   }
   // get root() {
   //   if (!this._root) {
@@ -48,6 +74,9 @@ export function createElement(type, attributes, ...children) {
       if (typeof child === 'string') {
         child = new TextWrapper(child)
       }
+      if (child === null) {
+        continue
+      }
       if (Array.isArray(child)) {
         insertChildren(child)
       } else {
@@ -68,6 +97,9 @@ class ElementWrapper {
       const type = RegExp.$1.replace(/^[\s\S]/, c => c.toLowerCase()).toString()
       this.root.addEventListener(type, value)
     } else {
+      if (name === 'className') {
+        this.root.setAttribute('class', value)
+      }
       this.root.setAttribute(name, value)
     }
     
